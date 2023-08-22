@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form id="commentForm">
+        <label for="userName">Username:</label>
+        <input 
+            type="text"
+            name="userName"
+            id="userName"
+            placeholder="Enter Screen Name..."
+        >
+        <br>
+        <label for="postText">Post:</label>
+        <input 
+            type="text" 
+            name="postText" 
+            id="postText"
+            placeholder="Type Comment..."
+        >
+        <br>
+        <input type="submit" name="submitButton" id="submitButton">  
+    </form>
+    <ul id="commentList">Chat:</ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    </script src="app.js">
+    <script>
+        const client = io();
+        const commentContainer = document.getElementById('commentList');
+        const clientName = document.getElementById('userName');
+        const commentText = document.getElementById('postText');
+        const form = document.getElementById('commentForm')
+        const button = document.getElementById('submitButton');
+        
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            console.log('Message Sent')
+            if ( clientName.value !== '' && commentText.value !== '' ) {
+                let commentData = {
+                    text: commentText.value,
+                    sender: clientName.value,
+                }
+                console.log(`button clicked`);
+                client.emit('sentServerMessage', commentData)
+                commentText.value = '';
+            } else if ( clientName === '' && commentText.value === '') {
+                alert(`Cannont post due to Empty Username and Comment Fields`)
+            } else if ( clientName.value === '') {
+                alert(`Cannot post due to Empty Username Field`);
+            } else if ( commentText.value === '') {
+                alert(`Cannot post due to Empty Comment Field`);
+            }
+        });
+
+        client.on('sentClientMessage', (recivedComment) => {
+            console.log(recivedComment.indexOf(clientName.value));
+
+            if (recivedComment.indexOf(clientName.value) !== 0){
+                let newComment = document.createElement('li');
+                newComment.textContent = recivedComment;
+                commentContainer.appendChild(newComment);
+                window.scrollTo(0, document.body.scrollHeight);  
+            } else if (clientName.value === '') {
+                let newComment = document.createElement('li');
+                newComment.textContent = recivedComment;
+                commentContainer.appendChild(newComment);
+                window.scrollTo(0, document.body.scrollHeight); 
+            } else {
+                alert(`There is a problem!`)
+            }
+        });
+    </script>
+</body>
+</html>
